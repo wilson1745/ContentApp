@@ -11,6 +11,8 @@ import android.support.v4.app.ActivityCompat;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.util.Log;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
 import static android.Manifest.permission.*;
 
@@ -53,14 +55,23 @@ public class MainActivity extends AppCompatActivity {
 
    private void readContacts() {
       ContentResolver resolver = getContentResolver();
-      Cursor cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI,null,null,null,null);
+      Cursor cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI,null,null,null,"DISPLAY_NAME DESC");
 
-      while (cursor.moveToNext()) {
+      /*while (cursor.moveToNext()) {
          //處理每一筆資料
          int id = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts._ID));
          String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
          Log.d("RECORD", id + "/" + name);
-      }
+      }*/
 
+      ListView list = findViewById(R.id.list);
+
+      SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
+              android.R.layout.simple_list_item_1,
+              cursor,
+              new String[] {ContactsContract.Contacts.DISPLAY_NAME},
+              new int[] {android.R.id.text1},
+              1);
+      list.setAdapter(adapter);
    }
 }
