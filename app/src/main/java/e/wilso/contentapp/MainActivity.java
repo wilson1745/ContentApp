@@ -18,6 +18,13 @@ import android.widget.SimpleCursorAdapter;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Contacts;
 import android.widget.TextView;
+import android.content.ContentProviderOperation;
+import android.provider.ContactsContract.RawContacts;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.content.OperationApplicationException;
+import android.os.RemoteException;
+import java.util.ArrayList;
 
 import static android.Manifest.permission.*;
 
@@ -39,6 +46,80 @@ public class MainActivity extends AppCompatActivity {
       else {
          //已有權限，可進行檔案存取
          readContacts();
+      }
+
+      //insertContact();
+      //updateContact();
+      //deleteContact();
+   }
+
+   private void deleteContact() {
+      String where = Data.DISPLAY_NAME + " = ?";
+      String[] params = new String[] {"Jane"};
+      ArrayList ops = new ArrayList();
+
+      ops.add(ContentProviderOperation.newDelete(RawContacts.CONTENT_URI)
+              .withSelection(where, params)
+              .build());
+      try {
+         getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      }catch (RemoteException e) {
+         e.printStackTrace();
+      }catch (OperationApplicationException e) {
+         e.printStackTrace();
+      }
+      Log.d("DELETE", "deleteContact has finished!");
+   }
+
+   private void updateContact() {
+      String where = Phone.DISPLAY_NAME + " = ? AND " + Data.MIMETYPE + " = ? ";
+      String[] params = new String[] {"Jane", Phone.CONTENT_ITEM_TYPE};
+      //Log.d("DATA", "Fuck you: " + Phone.DISPLAY_NAME + " || " + Data.MIMETYPE + " || " + Phone.CONTENT_ITEM_TYPE);
+      ArrayList ops = new ArrayList();
+
+      ops.add(ContentProviderOperation.newUpdate(Data.CONTENT_URI)
+              .withSelection(where, params)
+              .withValue(Phone.NUMBER, "(090) 033-3312")
+              .build());
+      try {
+         getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      }catch (RemoteException e) {
+         e.printStackTrace();
+      }catch (OperationApplicationException e) {
+         e.printStackTrace();
+      }
+   }
+
+   private void insertContact() {
+      ArrayList ops = new ArrayList();
+      int index = ops.size();
+
+      ops.add(ContentProviderOperation
+              .newInsert(RawContacts.CONTENT_URI)
+              .withValue(RawContacts.ACCOUNT_TYPE, null)
+              .withValue(RawContacts.ACCOUNT_NAME, null)
+              .build());
+
+      ops.add(ContentProviderOperation
+              .newInsert(ContactsContract.Data.CONTENT_URI)
+              .withValueBackReference(Data.RAW_CONTACT_ID, index)
+              .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
+              .withValue(StructuredName.DISPLAY_NAME, "Jane")
+              .build());
+
+      ops.add(ContentProviderOperation
+              .newInsert(ContactsContract.Data.CONTENT_URI)
+              .withValueBackReference(Data.RAW_CONTACT_ID, index)
+              .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+              .withValue(Phone.NUMBER, "(090)011-2233")
+              .withValue(Phone.TYPE, Phone.TYPE_MOBILE)
+              .build());
+      try {
+         getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      }catch (RemoteException e) {
+         e.printStackTrace();
+      }catch (OperationApplicationException e) {
+         e.printStackTrace();
       }
    }
 
@@ -100,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
                if (pCursor.moveToFirst()) {
                   String number = pCursor.getString(pCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DATA));
                   phone.setText(number);
+                  Log.d("RECORD", id + "/" + number);
                }
             }
          }
