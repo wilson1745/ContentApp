@@ -1,12 +1,16 @@
 package e.wilso.contentapp;
 
 import android.app.AlertDialog;
+import android.content.ContentResolver;
+import android.database.Cursor;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
 import static android.Manifest.permission.*;
 
@@ -48,5 +52,15 @@ public class MainActivity extends AppCompatActivity {
    }
 
    private void readContacts() {
+      ContentResolver resolver = getContentResolver();
+      Cursor cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI,null,null,null,null);
+
+      while (cursor.moveToNext()) {
+         //處理每一筆資料
+         int id = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+         String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+         Log.d("RECORD", id + "/" + name);
+      }
+
    }
 }
